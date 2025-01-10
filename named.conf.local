@@ -1,5 +1,5 @@
 zone "sistema.sol" {
-    type master
+    type master;
     file "/var/lib/bind/db.sistema.sol";
 };
 
