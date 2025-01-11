@@ -1,0 +1,57 @@
+- hosts: tierra
+  become: true
+  tasks:
+    - name: Instalar BIND9
+      apt:
+        name: bind9
+        state: present
+        update_cache: yes
+
+    - name: Copiar configuración de named.conf.local
+      copy:
+        src: /vagrant/dns/named.conf.local
+        dest: /etc/bind/named.conf.local
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Copiar configuración de named.conf.options
+      copy:
+        src: /vagrant/dns/named.conf.options
+        dest: /etc/bind/named.conf.options
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Copiar archivo de zona db.sistema.sol
+      copy:
+        src: /vagrant/dns/db.sistema.sol
+        dest: /var/lib/bind/db.sistema.sol
+        owner: bind
+        group: bind
+        mode: '0644'
+
+    - name: Copiar archivo de zona inversa db.192.168.57
+      copy:
+        src: /vagrant/dns/db.192.168.57
+        dest: /var/lib/bind/db.192.168.57
+        owner: bind
+        group: bind
+        mode: '0644'
+
+    - name: Reiniciar el servicio DNS
+      service:
+        name: bind9
+        state: restarted
+        enabled: true
+
+- hosts: clientes
+  become: true
+  tasks:
+    - name: Configurar /etc/resolv.conf
+      lineinfile:
+        path: /etc/resolv.conf
+        line: "{{ item }}"
+      with_items:
+        - "search sistema.sol"
+        - "nameserver 192.168.57.103"
