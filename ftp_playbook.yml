@@ -1,0 +1,151 @@
+---
+- name: Uso del cliente FTP en línea de comandos
+  hosts: tierra
+  become: yes
+  tasks:
+    - name: Crear usuario pepe si no existe
+      user:
+        name: pepe
+        state: present
+        create_home: yes
+
+    - name: Crear directorio /home/pepe/pruebasFTP
+      file:
+        path: /home/pepe/pruebasFTP
+        state: directory
+        owner: pepe
+        group: pepe
+        mode: '0755'
+
+    - name: Cambiar al directorio pruebasFTP
+      ansible.builtin.shell: cd /home/pepe/pruebasFTP
+
+    - name: Crear archivo datos1.txt con contenido
+      ansible.builtin.copy:
+        content: |
+          Este es un archivo de prueba para el FTP.
+        dest: /home/pepe/pruebasFTP/datos1.txt
+        owner: pepe
+        group: pepe
+        mode: '0644'
+
+    - name: Establecer una conexión anónima al servidor FTP (ftp.cica.es)
+      ansible.builtin.shell: |
+        pftp -n ftp.cica.es << EOF
+        user anonymous
+        quit
+        EOF
+      register: ftp_connection
+      ignore_errors: yes
+
+    - name: Verificar conexión FTP
+      debug:
+        msg: "{{ ftp_connection.stdout }}"
+
+    - name: Examinar directorio activo en el servidor FTP
+      ansible.builtin.shell: |
+        pftp -n ftp.cica.es << EOF
+        user anonymous
+        pwd
+        quit
+        EOF
+      register: ftp_pwd
+      ignore_errors: yes
+
+    - name: Mostrar directorio activo en el servidor
+      debug:
+        msg: "{{ ftp_pwd.stdout }}"
+
+    - name: Examinar directorio activo en el cliente
+      ansible.builtin.shell: |
+        pwd
+      register: client_pwd
+      ignore_errors: yes
+
+    - name: Mostrar directorio activo en el cliente
+      debug:
+        msg: "{{ client_pwd.stdout }}"
+
+    - name: Listar archivos del servidor FTP
+      ansible.builtin.shell: |
+        pftp -n ftp.cica.es << EOF
+        user anonymous
+        ls
+        quit
+        EOF
+      register: ftp_ls_server
+      ignore_errors: yes
+
+    - name: Mostrar listado de archivos en el servidor FTP
+      debug:
+        msg: "{{ ftp_ls_server.stdout }}"
+
+    - name: Listar archivos de la carpeta local del cliente
+      ansible.builtin.shell: |
+        ls /home/pepe/pruebasFTP
+      register: client_ls
+      ignore_errors: yes
+
+    - name: Mostrar listado de archivos en el cliente
+      debug:
+        msg: "{{ client_ls.stdout }}"
+
+    - name: Descargar archivo /pub/check desde el servidor FTP
+      ansible.builtin.shell: |
+        pftp -n ftp.cica.es << EOF
+        user anonymous
+        get /pub/check
+        quit
+        EOF
+      register: ftp_get_file
+      ignore_errors: yes
+
+    - name: Verificar que el archivo se descargó
+      ansible.builtin.shell: |
+        ls /home/pepe/pruebasFTP
+      register: client_after_download
+      ignore_errors: yes
+
+    - name: Mostrar archivos después de la descarga
+      debug:
+        msg: "{{ client_after_download.stdout }}"
+
+    - name: Crear directorio imágenes dentro de pruebasFTP
+      file:
+        path: /home/pepe/pruebasFTP/imagenes
+        state: directory
+        owner: pepe
+        group: pepe
+        mode: '0755'
+
+    - name: Verificar que el directorio imágenes se creó correctamente
+      ansible.builtin.shell: |
+        ls /home/pepe/pruebasFTP
+      register: client_after_create_directory
+      ignore_errors: yes
+
+    - name: Mostrar archivos después de crear el directorio
+      debug:
+        msg: "{{ client_after_create_directory.stdout }}"
+
+    - name: Intentar subir el archivo datos1.txt al servidor FTP
+      ansible.builtin.shell: |
+        pftp -n ftp.cica.es << EOF
+        user anonymous
+        put /home/pepe/pruebasFTP/datos1.txt
+        quit
+        EOF
+      register: ftp_put_file
+      ignore_errors: yes
+
+    - name: Cerrar conexión FTP
+      ansible.builtin.shell: |
+        pftp -n ftp.cica.es << EOF
+        quit
+        EOF
+      register: ftp_disconnect
+      ignore_errors: yes
+
+    - name: Verificar desconexión FTP
+      debug:
+        msg: "Conexión FTP cerrada correctamente."
