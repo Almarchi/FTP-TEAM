@@ -9,7 +9,7 @@
 
     - name: Copiar configuración de named.conf.local
       copy:
-        src: /vagrant/dns/named.conf.local
+        src: /vagrant/named.conf.local
         dest: /etc/bind/named.conf.local
         owner: root
         group: root
@@ -17,7 +17,7 @@
 
     - name: Copiar configuración de named.conf.options
       copy:
-        src: /vagrant/dns/named.conf.options
+        src: /vagrant/named.conf.options
         dest: /etc/bind/named.conf.options
         owner: root
         group: root
@@ -25,7 +25,7 @@
 
     - name: Copiar archivo de zona db.sistema.sol
       copy:
-        src: /vagrant/dns/db.sistema.sol
+        src: /vagrant/db.sistema.sol
         dest: /var/lib/bind/db.sistema.sol
         owner: bind
         group: bind
@@ -33,7 +33,7 @@
 
     - name: Copiar archivo de zona inversa db.192.168.57
       copy:
-        src: /vagrant/dns/db.192.168.57
+        src: /vagrant/db.192.168.57
         dest: /var/lib/bind/db.192.168.57
         owner: bind
         group: bind
