@@ -1,7 +1,7 @@
 [tierra]
-192.168.57.103
+192.168.57.103 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/tierra/virtualbox/private_key
 
 [clientes]
-192.168.57.101
-192.168.57.102
-192.168.57.104
+192.168.57.101 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/mercurio/virtualbox/private_key
+192.168.57.102 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/venus/virtualbox/private_key
+192.168.57.104 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/marte/virtualbox/private_key
