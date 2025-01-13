@@ -1,13 +1,16 @@
 $TTL    604800
-      @       IN      SOA     tierra.sistema.sol. admin.sistema.sol. (
+@       IN      SOA     tierra.sistema.sol. admin.sistema.sol. (
                             2         ; Serial
                             604800    ; Refresh
                             86400     ; Retry
                             2419200   ; Expire
                             604800 )  ; Negative Cache TTL
-      ;
-      @       IN      NS      tierra.sistema.sol.
-      103     IN      PTR     tierra.sistema.sol.
-      101     IN      PTR     mercurio.sistema.sol.
-      102     IN      PTR     venus.sistema.sol.
-      104     IN      PTR     marte.sistema.sol.
+
+; Servidor de nombres principal
+@       IN      NS      tierra.sistema.sol.
+
+; Registros PTR para la resolución inversa
+103     IN      PTR     tierra.sistema.sol.
+101     IN      PTR     mercurio.sistema.sol.
+102     IN      PTR     venus.sistema.sol.
+104     IN      PTR     marte.sistema.sol.
