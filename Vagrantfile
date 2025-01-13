@@ -1,11 +1,9 @@
-# -*- mode: ruby -*-
-# vi: set ft=ruby :
 Vagrant.configure("2") do |config|
   config.vm.box = "debian/bookworm64"
 
-  config.vm.define "tierra" do |dns|
-    dns.vm.hostname = "tierra.sistema.sol"
-    dns.vm.network :private_network, ip: "192.168.57.103"
+  config.vm.define "tierra" do |tierra|
+    tierra.vm.hostname = "tierra.sistema.sol"
+    tierra.vm.network :private_network, ip: "192.168.57.103"
   end
 
   config.vm.define "mercurio" do |mercurio|
@@ -21,5 +19,10 @@ Vagrant.configure("2") do |config|
   config.vm.define "marte" do |marte|
     marte.vm.hostname = "marte.sistema.sol"
     marte.vm.network :private_network, ip: "192.168.57.104"
+  end
+
+  config.vm.provision "ansible" do |ansible|
+    ansible.playbook = "site.yml"
+    ansible.inventory_path = "inventory.yml"
   end
 end
