@@ -1,0 +1,45 @@
+#1
+sudo apt update
+sudo apt install vsftpd -y
+
+#2
+cat /etc/passwd | grep ftp
+
+#3
+cat /etc/group | grep ftp
+ls -ld /srv/ftp
+
+#4
+#Estaran bloqueados:
+#root
+#daemon
+#bin 
+#sys
+
+#5
+sudo systemctl status vsftpd
+
+#6
+sudo ss -tuln | grep :21
+
+#7
+sudo cp /etc/vsftpd.conf /etc/vsftpd.conf.bak
+
+#8
+sudo adduser luis (contraseña: luis)
+sudo adduser maria (contraseña: maria)
+sudo adduser miguel (contraseña: miguel)
+
+#9
+su luis
+echo "Este es el archivo 1 de luis" > ~/luis1.txt
+echo "Este es el archivo 2 de luis" > ~/luis2.txt
+ls ~/
+
+#10
+su maria
+echo "Este es el archivo 1 de maria" > ~/maria1.txt
+echo "Este es el archivo 2 de maria" > ~/maria2.txt
+ls ~/
+
+#11
