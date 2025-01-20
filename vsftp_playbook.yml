@@ -1,0 +1,101 @@
+---
+- name: Configure Vagrant machine 'venus' with FTP setup
+  hosts: venus
+  become: yes
+  tasks:
+    - name: Update APT package cache
+      apt:
+        update_cache: yes
+
+    - name: Install vsftpd package
+      apt:
+        name: vsftpd
+        state: present
+
+    # - name: Check if FTP user exists and verify home directory
+    #   command: grep '^ftp:' /etc/passwd
+    #   register: ftp_user
+    #   changed_when: false
+
+    # - name: Display FTP user information
+    #   debug:
+    #     msg: "{{ ftp_user.stdout }}"
+
+    # - name: Check FTP group information
+    #   command: grep '^ftp:' /etc/group
+    #   register: ftp_group
+    #   changed_when: false
+
+    # - name: Display FTP group information
+    #   debug:
+    #     msg: "{{ ftp_group.stdout }}"
+
+    # - name: Verify /srv/ftp directory and ownership
+    #   stat:
+    #     path: /srv/ftp
+    #   register: ftp_directory
+
+    # - name: Display /srv/ftp directory information
+    #   debug:
+    #     msg: "{{ ftp_directory.stat }}"
+
+    # - name: List system users who cannot access FTP service
+    #   command: cat /etc/ftpusers
+    #   register: restricted_users
+    #   changed_when: false
+
+    # - name: Display restricted users
+    #   debug:
+    #     msg: "{{ restricted_users.stdout }}"
+
+    - name: Check if vsftpd service is running
+      service:
+        name: vsftpd
+        state: started
+      register: vsftpd_status
+
+    - name: Display vsftpd service status
+      debug:
+        msg: "Service 'vsftpd' is running: {{ vsftpd_status.state == 'started' }}"
+
+    - name: Verify vsftpd is listening on port 21
+      shell: "ss -tuln | grep ':21 '"
+      register: ss_output
+      failed_when: ss_output.rc != 0
+      changed_when: false
+
+    - name: Display port 21 listening status
+      debug:
+        msg: "{{ ss_output.stdout }}"
+
+    - name: Backup vsftpd configuration file
+      copy:
+        remote_src: yes
+        src: /etc/vsftpd.conf
+        dest: /vagrant/vsftpd.conf.bak
+
+    - name: Create local users
+      user:
+        name: "{{ item }}"
+        state: present
+        shell: /bin/bash
+      loop:
+        - luis
+        - maria
+        - miguel
+
+    - name: Create text files in Luis's home directory
+      file:
+        path: "/home/luis/{{ item }}"
+        state: touch
+      loop:
+        - luis1.txt
+        - luis2.txt
+
+    - name: Create text files in Maria's home directory
+      file:
+        path: "/home/maria/{{ item }}"
+        state: touch
+      loop:
+        - maria1.txt
+        - maria2.txt
