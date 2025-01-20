@@ -74,6 +74,72 @@
         src: /etc/vsftpd.conf
         dest: /vagrant/vsftpd.conf.bak
 
+    - name: Create configuration file for vsftpd
+      copy:
+        dest: /etc/vsftpd.conf
+        content: |
+          # 1. El servidor se inicia en modo standalone usando IPv4.
+          listen=YES
+          listen_ipv6=NO
+
+          # 2. Mensaje de bienvenida que presentará el servidor al conectarse los clientes.
+          ftpd_banner=Welcome to the FTP server of 'sistema.sol'
+
+          # 3. Mensaje para usuarios anónimos al acceder.
+          dirmessage_enable=YES
+          message_file=/srv/ftp/.message
+
+          # 4. Habilitar el puerto 20 para la conexión de datos.
+          connect_from_port_20=YES
+
+          # 5. Cerrar conexiones inactivas después de 720 segundos.
+          idle_session_timeout=720
+
+          # 6. Permitir un máximo de 15 conexiones simultáneas al servidor.
+          max_clients=15
+
+          # 7. Limitar el ancho de banda de los usuarios con cuenta a 5 MB/s.
+          local_max_rate=5120
+
+          # 8. Limitar el ancho de banda de los usuarios anónimos a 2 MB/s.
+          anon_max_rate=2048
+
+          # 9. Permitir acceso a usuarios anónimos con solo permisos de lectura.
+          anonymous_enable=YES
+          anon_upload_enable=NO
+          anon_mkdir_write_enable=NO
+
+          # 10. Permitir acceso a usuarios locales con permisos de lectura y escritura.
+          local_enable=YES
+          write_enable=YES
+
+          # 11. Enjaular a todos los usuarios locales excepto a Maria en su directorio home.
+          chroot_local_user=YES
+          chroot_list_enable=YES
+          chroot_list_file=/etc/vsftpd.chroot_list
+
+    - name: Create directory for anonymous FTP messages
+      file:
+        path: /srv/ftp/.message
+        state: touch
+
+    - name: Set anonymous FTP message
+      copy:
+        content: |
+          ---You have accessed the public directory server of 'sistema.sol'---
+        dest: /srv/ftp/.message
+
+    - name: Configure chroot list for vsftpd
+      copy:
+        dest: /etc/vsftpd.chroot_list
+        content: |
+          maria
+
+    - name: Restart vsftpd service
+      service:
+        name: vsftpd
+        state: restarted
+
     - name: Create local users
       user:
         name: "{{ item }}"
