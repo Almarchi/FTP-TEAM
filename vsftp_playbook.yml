@@ -75,6 +75,27 @@
       - maria1.txt
       - maria2.txt
 
+  - name: Crear subdirectorio writable para luis y miguel
+    file:
+      path: "/home/{{ item }}/writable"
+      owner: "{{ item }}"
+      group: "{{ item }}"
+      mode: '0755'
+      state: directory
+    loop:
+      - luis
+      - miguel
+
+  - name: Asegurar que los directorios home de luis y miguel no sean escribibles directamente
+    file:
+      path: "/home/{{ item }}"
+      owner: "{{ item }}"
+      group: "{{ item }}"
+      mode: '0555'
+    loop:
+      - luis
+      - miguel
+
   - name: Crear directorio /etc/vsftpd
     file:
       path: /etc/vsftpd
@@ -102,3 +123,4 @@
     service:
       name: vsftpd
       state: restarted
+
