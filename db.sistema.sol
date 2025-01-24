@@ -14,3 +14,7 @@ tierra      IN      A       192.168.57.103
 mercurio    IN      A       192.168.57.101
 venus       IN      A       192.168.57.102
 marte       IN      A       192.168.57.104
+
+; Alias servidor ftp (venus)
+
+ftp     IN  CNAME   venus

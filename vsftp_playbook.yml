@@ -1,0 +1,104 @@
+---
+- name: Actualizar sistemas y configurar FTP
+  hosts: mercurio:marte
+  become: true
+  tasks:
+
+  - name: Actualizar el sistema en Mercurio y Marte
+    apt:
+      update_cache: yes
+
+  - name: Instalar cliente FTP en Mercurio y Marte
+    apt:
+      name: ftp
+      state: present
+
+- name: Actualizar sistemas en Tierra
+  hosts: tierra
+  become: true
+  tasks:
+
+  - name: Actualizar el sistema en Tierra
+    apt:
+      update_cache: yes
+
+  - name: Instalar cliente FTP en Tierra
+    apt:
+      name: ftp
+      state: present
+
+- name: Configurar vsftpd en Venus
+  hosts: venus
+  become: true
+  tasks:
+
+  - name: Instalar vsftpd en Venus
+    apt:
+      name: vsftpd
+      state: present
+
+  - name: Comprobar que el servicio está activo
+    service:
+      name: vsftpd
+      state: started
+
+  - name: Realizar copia de seguridad del archivo de configuración
+    copy:
+      src: /etc/vsftpd.conf
+      dest: /vagrant/vsftpd.conf.bak
+      remote_src: yes
+
+  - name: Crear usuarios locales en Venus
+    user:
+      name: "{{ item }}"
+      shell: /bin/bash
+      home: "/home/{{ item }}"
+      state: present
+    loop:
+      - luis
+      - maria
+      - miguel
+
+  - name: Crear archivos en directorio de luis
+    copy:
+      content: "Contenido de prueba para {{ item }}"
+      dest: "/home/luis/{{ item }}"
+    loop:
+      - luis1.txt
+      - luis2.txt
+
+  - name: Crear archivos en directorio de maria
+    copy:
+      content: "Contenido de prueba para {{ item }}"
+      dest: "/home/maria/{{ item }}"
+    loop:
+      - maria1.txt
+      - maria2.txt
+
+  - name: Crear directorio /etc/vsftpd
+    file:
+      path: /etc/vsftpd
+      state: directory
+
+  - name: Copiar archivo de configuración personalizado a /etc/vsftpd.conf
+    copy:
+      src: /vagrant/vsftpd.conf
+      dest: /etc/vsftpd.conf
+      remote_src: yes
+
+  - name: Copiar mensaje para usuarios anónimos
+    copy:
+      src: /vagrant/anon_msg.txt
+      dest: /etc/vsftpd/anon_msg.txt
+      remote_src: yes
+
+  - name: Copiar archivo chroot_list para usuarios no enjaulados
+    copy:
+      src: /vagrant/chroot_list.txt
+      dest: /etc/vsftpd/chroot_list.txt
+      remote_src: yes
+
+  - name: Reiniciar el servicio vsftpd
+    service:
+      name: vsftpd
+      state: restarted
