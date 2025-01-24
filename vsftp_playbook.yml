@@ -1,146 +1,104 @@
 ---
-- name: Configure Vagrant machine 'venus' with FTP setup
-  hosts: venus
-  become: yes
+- name: Actualizar sistemas y configurar FTP
+  hosts: mercurio:marte
+  become: true
   tasks:
-    - name: Update APT package cache
-      apt:
-        update_cache: yes
 
-    - name: Install vsftpd package
-      apt:
-        name: vsftpd
-        state: present
+  - name: Actualizar el sistema en Mercurio y Marte
+    apt:
+      update_cache: yes
 
-    - name: Create local users
-      user:
-        name: "{{ item }}"
-        state: present
-        shell: /bin/bash
-      loop:
-        - luis
-        - maria
-        - miguel
+  - name: Instalar cliente FTP en Mercurio y Marte
+    apt:
+      name: ftp
+      state: present
 
-    - name: Set password for user luis
-      user:
-        name: luis
-        password: "{{ 'usuarioftp' | password_hash('sha512') }}"
+- name: Actualizar sistemas en Tierra
+  hosts: tierra
+  become: true
+  tasks:
 
-    - name: Set password for user maria
-      user:
-        name: maria
-        password: "{{ 'usuarioftp' | password_hash('sha512') }}"
+  - name: Actualizar el sistema en Tierra
+    apt:
+      update_cache: yes
 
-    - name: Set password for user miguel
-      user:
-        name: miguel
-        password: "{{ 'usuarioftp' | password_hash('sha512') }}"
+  - name: Instalar cliente FTP en Tierra
+    apt:
+      name: ftp
+      state: present
 
-    - name: Check if vsftpd service is running
-      service:
-        name: vsftpd
-        state: started
-      register: vsftpd_status
+- name: Configurar vsftpd en Venus
+  hosts: venus
+  become: true
+  tasks:
 
-    - name: Display vsftpd service status
-      debug:
-        msg: "Service 'vsftpd' is running: {{ vsftpd_status.state == 'started' }}"
+  - name: Instalar vsftpd en Venus
+    apt:
+      name: vsftpd
+      state: present
 
-    - name: Verify vsftpd is listening on port 21
-      shell: "ss -tuln | grep ':21 '"
-      register: ss_output
-      failed_when: ss_output.rc != 0
-      changed_when: false
+  - name: Comprobar que el servicio está activo
+    service:
+      name: vsftpd
+      state: started
 
-    - name: Display port 21 listening status
-      debug:
-        msg: "{{ ss_output.stdout }}"
+  - name: Realizar copia de seguridad del archivo de configuración
+    copy:
+      src: /etc/vsftpd.conf
+      dest: /vagrant/vsftpd.conf.bak
+      remote_src: yes
 
-    - name: Backup vsftpd configuration file
-      copy:
-        remote_src: yes
-        src: /etc/vsftpd.conf
-        dest: /vagrant/vsftpd.conf.bak
+  - name: Crear usuarios locales en Venus
+    user:
+      name: "{{ item }}"
+      shell: /bin/bash
+      home: "/home/{{ item }}"
+      state: present
+    loop:
+      - luis
+      - maria
+      - miguel
 
-    - name: Create configuration file for vsftpd
-      copy:
-        dest: /etc/vsftpd.conf
-        content: |
-          # 1. El servidor se inicia en modo standalone usando IPv4.
-          listen=YES
-          listen_ipv6=NO
+  - name: Crear archivos en directorio de luis
+    copy:
+      content: "Contenido de prueba para {{ item }}"
+      dest: "/home/luis/{{ item }}"
+    loop:
+      - luis1.txt
+      - luis2.txt
 
-          # 2. Mensaje de bienvenida que presentará el servidor al conectarse los clientes.
-          ftpd_banner=Welcome to the FTP server of 'sistema.sol'
+  - name: Crear archivos en directorio de maria
+    copy:
+      content: "Contenido de prueba para {{ item }}"
+      dest: "/home/maria/{{ item }}"
+    loop:
+      - maria1.txt
+      - maria2.txt
 
-          # 3. Mensaje para usuarios anónimos al acceder.
-          dirmessage_enable=YES
-          message_file=/srv/ftp/.message
+  - name: Crear directorio /etc/vsftpd
+    file:
+      path: /etc/vsftpd
+      state: directory
 
-          # 4. Habilitar el puerto 20 para la conexión de datos.
-          connect_from_port_20=YES
+  - name: Copiar archivo de configuración personalizado a /etc/vsftpd.conf
+    copy:
+      src: /vagrant/vsftpd.conf
+      dest: /etc/vsftpd.conf
+      remote_src: yes
 
-          # 5. Cerrar conexiones inactivas después de 720 segundos.
-          idle_session_timeout=720
+  - name: Copiar mensaje para usuarios anónimos
+    copy:
+      src: /vagrant/anon_msg.txt
+      dest: /etc/vsftpd/anon_msg.txt
+      remote_src: yes
 
-          # 6. Permitir un máximo de 15 conexiones simultáneas al servidor.
-          max_clients=15
+  - name: Copiar archivo chroot_list para usuarios no enjaulados
+    copy:
+      src: /vagrant/chroot_list.txt
+      dest: /etc/vsftpd/chroot_list.txt
+      remote_src: yes
 
-          # 7. Limitar el ancho de banda de los usuarios con cuenta a 5 MB/s.
-          local_max_rate=5120
-
-          # 8. Limitar el ancho de banda de los usuarios anónimos a 2 MB/s.
-          anon_max_rate=2048
-
-          # 9. Permitir acceso a usuarios anónimos con solo permisos de lectura.
-          anonymous_enable=YES
-          anon_upload_enable=NO
-          anon_mkdir_write_enable=NO
-
-          # 10. Permitir acceso a usuarios locales con permisos de lectura y escritura.
-          local_enable=YES
-          write_enable=YES
-
-          # 11. Enjaular a todos los usuarios locales excepto a Maria en su directorio home.
-          chroot_local_user=YES
-          chroot_list_enable=YES
-          chroot_list_file=/etc/vsftpd.chroot_list
-
-    - name: Create directory for anonymous FTP messages
-      file:
-        path: /srv/ftp/.message
-        state: touch
-
-    - name: Set anonymous FTP message
-      copy:
-        content: |
-          ---You have accessed the public directory server of 'sistema.sol'---
-        dest: /srv/ftp/.message
-
-    - name: Configure chroot list for vsftpd
-      copy:
-        dest: /etc/vsftpd.chroot_list
-        content: |
-          maria
-
-    - name: Restart vsftpd service
-      service:
-        name: vsftpd
-        state: restarted
-
-    - name: Create text files in Luis's home directory
-      file:
-        path: "/home/luis/{{ item }}"
-        state: touch
-      loop:
-        - luis1.txt
-        - luis2.txt
-
-    - name: Create text files in Maria's home directory
-      file:
-        path: "/home/maria/{{ item }}"
-        state: touch
-      loop:
-        - maria1.txt
-        - maria2.txt
+  - name: Reiniciar el servicio vsftpd
+    service:
+      name: vsftpd
+      state: restarted
