@@ -32,7 +32,7 @@
   become: true
   tasks:
 
-  - name: Actualizar el sistema en Vemus
+  - name: Actualizar el sistema en Venus
     apt:
       update_cache: yes
       
@@ -57,6 +57,7 @@
       name: "{{ item }}"
       shell: /bin/bash
       home: "/home/{{ item }}"
+      password: "{{ 'usuarioftp' | password_hash('sha512') }}"
       state: present
     loop:
       - luis
