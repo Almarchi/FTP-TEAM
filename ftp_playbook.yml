@@ -17,9 +17,6 @@
         group: pepe
         mode: '0755'
 
-    - name: Cambiar al directorio pruebasFTP
-      ansible.builtin.shell: cd /home/pepe/pruebasFTP
-
     - name: Crear archivo datos1.txt con contenido
       ansible.builtin.copy:
         content: |
