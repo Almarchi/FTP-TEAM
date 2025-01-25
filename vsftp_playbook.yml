@@ -32,6 +32,10 @@
   become: true
   tasks:
 
+  - name: Actualizar el sistema en Venus
+    apt:
+      update_cache: yes
+      
   - name: Instalar vsftpd en Venus
     apt:
       name: vsftpd
@@ -53,6 +57,7 @@
       name: "{{ item }}"
       shell: /bin/bash
       home: "/home/{{ item }}"
+      password: "{{ 'usuarioftp' | password_hash('sha512') }}"
       state: present
     loop:
       - luis
@@ -101,6 +106,12 @@
       path: /etc/vsftpd
       state: directory
 
+  - name: Crear directorio para usuarios anónimos
+    file:
+      path: /var/ftp
+      state: directory
+      mode: '0755'
+
   - name: Copiar archivo de configuración personalizado a /etc/vsftpd.conf
     copy:
       src: /vagrant/vsftpd.conf
@@ -110,7 +121,7 @@
   - name: Copiar mensaje para usuarios anónimos
     copy:
       src: /vagrant/anon_msg.txt
-      dest: /etc/vsftpd/anon_msg.txt
+      dest: /var/ftp/anon_msg.txt
       remote_src: yes
 
   - name: Copiar archivo chroot_list para usuarios no enjaulados
@@ -119,8 +130,14 @@
       dest: /etc/vsftpd/chroot_list.txt
       remote_src: yes
 
+  - name: Asegurar permisos correctos para el archivo anon_msg
+    file:
+      path: /var/ftp/anon_msg.txt
+      owner: root
+      group: root
+      mode: '0644'
+
   - name: Reiniciar el servicio vsftpd
     service:
       name: vsftpd
       state: restarted
-
