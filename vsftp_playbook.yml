@@ -8,9 +8,10 @@
     apt:
       update_cache: yes
 
-  - name: Instalar cliente FTP en Mercurio y Marte
+  - name: Instalar cliente FTP y LFTP en Mercurio y Marte
     apt:
       name: ftp
+      name: lftp
       state: present
 
 - name: Actualizar sistemas en Tierra
@@ -22,9 +23,10 @@
     apt:
       update_cache: yes
 
-  - name: Instalar cliente FTP en Tierra
+  - name: Instalar cliente FTP y LFTP en Tierra
     apt:
       name: ftp
+      name: lftp
       state: present
 
 - name: Configurar vsftpd en Venus
