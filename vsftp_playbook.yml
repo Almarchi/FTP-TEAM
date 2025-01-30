@@ -8,9 +8,13 @@
     apt:
       update_cache: yes
 
-  - name: Instalar cliente FTP y LFTP en Mercurio y Marte
+  - name: Instalar cliente FTP en Mercurio y Marte
     apt:
       name: ftp
+      state: present
+
+  - name: Instalar cliente LFTP en Mercurio y Marte
+    apt:
       name: lftp
       state: present
 
@@ -23,9 +27,13 @@
     apt:
       update_cache: yes
 
-  - name: Instalar cliente FTP y LFTP en Tierra
+  - name: Instalar cliente FTP en Tierra
     apt:
       name: ftp
+      state: present
+
+  - name: Instalar cliente LFTP en Tierra
+    apt:
       name: lftp
       state: present
 
@@ -138,6 +146,20 @@
       owner: root
       group: root
       mode: '0644'
+
+  - name: Copiar archivo sri.pem a /etc/ssl/certs
+    copy:
+      src: /vagrant/sri.pem
+      dest: /etc/ssl/certs/sri.pem
+      remote_src: yes
+      mode: '0644'
+
+  - name: Copiar archivo sri.key a /etc/ssl/private
+    copy:
+      src: /vagrant/sri.key
+      dest: /etc/ssl/private/sri.key
+      remote_src: yes
+      mode: '0600'
 
   - name: Reiniciar el servicio vsftpd
     service:
